@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+
+{% block title %}New Incident - Fire Department System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">New Incident</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="POST" action="{{ url_for('new_incident') }}">
+            <div class="mb-3">
+                <label for="incident_type" class="form-label">Incident Type</label>
+                <select class="form-select" id="incident_type" name="incident_type" required>
+                    <option value="fire">Fire</option>
+                    <option value="medical">Medical</option>
+                    <option value="hazmat">Hazmat</option>
+                    <option value="rescue">Rescue</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="priority" class="form-label">Priority</label>
+                <select class="form-select" id="priority" name="priority" required>
+                    <option value="1">1 - Highest</option>
+                    <option value="2">2 - High</option>
+                    <option value="3">3 - Medium</option>
+                    <option value="4">4 - Low</option>
+                    <option value="5">5 - Lowest</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="address" class="form-label">Address</label>
+                <input type="text" class="form-control" id="address" name="address" required>
+            </div>
+            <div class="mb-3">
+                <label for="latitude" class="form-label">Latitude</label>
+                <input type="number" step="any" class="form-control" id="latitude" name="latitude" required>
+            </div>
+            <div class="mb-3">
+                <label for="longitude" class="form-label">Longitude</label>
+                <input type="number" step="any" class="form-control" id="longitude" name="longitude" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="reporter_name" class="form-label">Reporter Name</label>
+                <input type="text" class="form-control" id="reporter_name" name="reporter_name">
+            </div>
+            <div class="mb-3">
+                <label for="reporter_phone" class="form-label">Reporter Phone</label>
+                <input type="text" class="form-control" id="reporter_phone" name="reporter_phone">
+            </div>
+            <button type="submit" class="btn btn-primary">Create Incident</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

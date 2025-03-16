@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}Add Vehicle - Fire Department System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Add Vehicle</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_vehicle') }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Vehicle Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="vehicle_type" class="form-label">Vehicle Type</label>
+                        <select class="form-select" id="vehicle_type" name="vehicle_type" required>
+                            <option value="Engine">Engine</option>
+                            <option value="Ladder">Ladder</option>
+                            <option value="Ambulance">Ambulance</option>
+                            <option value="Hazmat">Hazmat</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="available">Available</option>
+                            <option value="responding">Responding</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="capacity" class="form-label">Capacity</label>
+                        <input type="number" class="form-control" id="capacity" name="capacity" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="station_id" class="form-label">Station</label>
+                        <select class="form-select" id="station_id" name="station_id" required>
+                            {% for station in stations %}
+                                <option value="{{ station.id }}">{{ station.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Vehicle</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "layout.html" %}
+
+{% block title %}Incident #{{ incident.incident_number }} - Fire Department System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Incident #{{ incident.incident_number }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('incidents') }}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+        <button type="button" class="btn btn-outline-primary me-2" onclick="window.print()">
+            <i class="fas fa-print"></i> Print
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Incident Details
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Status</h6>
+                        <form method="POST" action="{{ url_for('update_incident', incident_id=incident.id) }}" class="d-inline">
+                            <select name="status" class="form-select mb-3" onchange="this.form.submit()">
+                                <option value="reported" {% if incident.status == 'reported' %}selected{% endif %}>Reported</option>
+                                <option value="responding" {% if incident.status == 'responding' %}selected{% endif %}>Responding</option>
+                                <option value="onscene" {% if incident.status == 'onscene' %}selected{% endif %}>On Scene</option>
+                                <option value="resolved" {% if incident.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                            </select>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Priority</h6>
+                        <form method="POST" action="{{ url_for('update_incident', incident_id=incident.id) }}" class="d-inline">
+                            <select name="priority" class="form-select mb-3" onchange="this.form.submit()">
+                                <option value="1" {% if incident.priority == 1 %}selected{% endif %}>1 - Highest</option>
+                                <option value="2" {% if incident.priority == 2 %}selected{% endif %}>2 - High</option>
+                                <option value="3" {% if incident.priority == 3 %}selected{% endif %}>3 - Medium</option>
+                                <option value="4" {% if incident.priority == 4 %}selected{% endif %}>4 - Low</option>
+                                <option value="5" {% if incident.priority == 5 %}selected{% endif %}>5 - Lowest</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Incident Type</h6>
+                        <p>{{ incident.incident_type }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Reported Time</h6>
+                        <p>{{ incident.reported_time.strftime('%m/%d/%Y %H:%M') }}</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <h6>Address</h6>
+                        <form method="POST" action="{{ url_for('update_incident', incident_id=incident.id) }}">
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" name="address" value="{{ incident.address }}">
+                                <button class="btn btn-outline-secondary" type="submit">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <h6>Description</h6>
+                        <form method="POST" action="{{ url_for('update_incident', incident_id=incident.id) }}">
+                            <div class="input-group mb-3">
+                                <textarea class="form-control" name="description" rows="3">{{ incident.description }}</textarea>
+                                <button class="btn btn-outline-secondary" type="submit">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-truck"></i> Assign Vehicle
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('assign_vehicle_to_incident', incident_id=incident.id) }}">
+                            <div class="mb-3">
+                                <label for="vehicle_id" class="form-label">Select Vehicle</label>
+                                <select class="form-select" id="vehicle_id" name="vehicle_id" required>
+                                    {% for vehicle in available_vehicles %}
+                                        <option value="{{ vehicle.id }}">{{ vehicle.name }} ({{ vehicle.vehicle_type }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Assign Vehicle</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

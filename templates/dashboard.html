@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - Fire Department System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+</div>
+
+<div class="row">
+    <!-- Active Incidents Card -->
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">Active Incidents</h5>
+                <h1 class="display-4">{{ active_incidents }}</h1>
+                <p class="card-text">Ongoing emergency responses</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Vehicles Card -->
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Available Vehicles</h5>
+                <h1 class="display-4">{{ available_vehicles }} / {{ total_vehicles }}</h1>
+                <p class="card-text">Ready for deployment</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Average Response Time Card -->
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Average Response Time</h5>
+                <h1 class="display-4">
+                    {% if average_response_time %}
+                        {{ average_response_time|round(1) }} mins
+                    {% else %}
+                        --
+                    {% endif %}
+                </h1>
+                <p class="card-text">From dispatch to arrival</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('delete_all_incidents') }}" class="btn btn-danger me-2">
+            <i class="fas fa-trash"></i> Delete All Incidents
+        </a>
+    </div>
+</div>
+
+
+<!-- Recent Incidents Section -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-fire"></i> Recent Incidents
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for incident in recent_incidents %}
+                    <a href="{{ url_for('incident_detail', incident_id=incident.id) }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ incident.incident_number }}</h6>
+                            <small>{{ incident.reported_time.strftime('%m/%d/%Y %H:%M') }}</small>
+                        </div>
+                        <p class="mb-1">{{ incident.address }}</p>
+                        <small>{{ incident.incident_type }} - {{ incident.status }}</small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    function updateDashboard() {
+        fetch('/api/dashboard')
+            .then(response => response.json())
+            .then(data => {
+                // Update Active Incidents
+                document.getElementById('active-incidents').innerText = data.active_incidents;
+
+                // Update Available Vehicles
+                document.getElementById('available-vehicles').innerText = `${data.available_vehicles} / ${data.total_vehicles}`;
+
+                // Update Average Response Time
+                document.getElementById('average-response-time').innerText = data.average_response_time ? `${data.average_response_time.toFixed(1)} mins` : '--';
+            });
+    }
+
+    // Update every 10 seconds
+    setInterval(updateDashboard, 10000);
+</script>
+{% endblock %}
