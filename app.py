@@ -37,6 +37,7 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100))
     role = db.Column(db.String(20), default='firefighter')  # admin, chief, dispatcher, firefighter
     station_id = db.Column(db.Integer, db.ForeignKey('station.id'))
+    incidents = db.relationship('Incident', backref='creator', lazy=True)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -96,6 +97,7 @@ class Incident(db.Model):
     reporter_name = db.Column(db.String(100))
     reporter_phone = db.Column(db.String(20))
     station_id = db.Column(db.Integer, db.ForeignKey('station.id'))
+    user_id= db.Column(db.Integer, db.ForeignKey('user.id'))
     personnel = db.relationship('PersonnelAssignment', back_populates='incident')
     vehicles = db.relationship('VehicleAssignment', back_populates='incident')
     notes = db.relationship('IncidentNote', backref='incident')
@@ -195,30 +197,33 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Count active incidents
-    active_incidents = Incident.query.filter(Incident.status != 'resolved').count()
-
+    # Count active incidents by the logged-in user
+    active_incidents = Incident.query.filter(
+        Incident.status != 'resolved',
+        Incident.user_id == current_user.id
+    ).count()
+    
     # Get vehicle and personnel availability
     available_vehicles = Vehicle.query.filter_by(status='available').count()
     total_vehicles = Vehicle.query.count()
-
-    # Calculate average response time (in minutes)
+    
+    # Recent incidents by the logged-in user
+    recent_incidents = Incident.query.filter_by(user_id=current_user.id).order_by(desc(Incident.reported_time)).limit(5).all()
+    
+    # Calculate average response time for the logged-in user
     response_times = db.session.query(
         func.avg(Incident.arrival_time - Incident.dispatch_time)
     ).filter(
         Incident.arrival_time.isnot(None),
-        Incident.dispatch_time.isnot(None)
+        Incident.dispatch_time.isnot(None),
+        Incident.user_id == current_user.id
     ).scalar()
-
+    
     # Convert response time to minutes
     if response_times:
         average_response_time = response_times.total_seconds() / 60
     else:
         average_response_time = None
-
-    # Recent incidents
-    recent_incidents = Incident.query.order_by(desc(Incident.reported_time)).limit(5).all()
-    print("Average response time:", average_response_time)
 
     return render_template(
         'dashboard.html',
@@ -235,7 +240,7 @@ def incidents():
     status_filter = request.args.get('status', 'all')
     type_filter = request.args.get('type', 'all')
     
-    query = Incident.query
+    query = Incident.query.filter_by(user_id=current_user.id)
     
     if status_filter != 'all':
         query = query.filter_by(status=status_filter)
@@ -251,6 +256,9 @@ def incidents():
 @login_required
 def incident_detail(incident_id):
     incident = Incident.query.get_or_404(incident_id)
+    if incident.user_id != current_user.id and current_user.role != 'admin':
+        flash('You do not have permission to view this incident')
+        return redirect(url_for('incidents'))
     available_vehicles = Vehicle.query.filter_by(status='available').all()
     return render_template('incident_detail.html', incident=incident, available_vehicles=available_vehicles)
 @app.route('/incidents/new', methods=['GET', 'POST'])
@@ -270,7 +278,8 @@ def new_incident():
             reporter_phone=request.form.get('reporter_phone'),
             status='reported',
             reported_time=datetime.utcnow(),
-            station_id=current_user.station_id
+            station_id=current_user.station_id,
+            user_id=current_user.id
         )
         
         db.session.add(incident)
@@ -408,6 +417,10 @@ def register():
 @login_required
 def delete_incident(incident_id):
     incident = Incident.query.get_or_404(incident_id)
+
+    if incident.user_id != current_user.id and current_user.role != 'admin':
+        flash('You do not have permission to delete this incident')
+        return redirect(url_for('incidents'))
     
     try:
         # Revert assigned vehicles to "available"
